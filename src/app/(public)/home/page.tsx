@@ -62,14 +62,14 @@ export default function RealHomePage() {
       </section>
       <ScrollToTopButton />
 
-      <section id="about" className="py-16 bg-white">
+      <section id="about" className="py-0 bg-white">
         <AboutSection />
       </section>
-      <section id="activities" className="py-16 bg-gray-50">
+      <section id="activities" className="py-o bg-gray-50">
         <ActivitiesSection />
       </section>
 
-      <section id="contact" className="py-16 bg-white">
+      <section id="contact" className="py-0 bg-white">
         <ContactSection />
       </section>
     </main>

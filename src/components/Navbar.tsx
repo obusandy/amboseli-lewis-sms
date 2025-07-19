@@ -2,55 +2,87 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState } from 'react';
 
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <nav className="w-full bg-white shadow-md py-4 px-6 fixed top-0 z-50">
-      <div className="container mx-auto flex justify-between items-center">
-        {/* Logo avec image */}
-        <Link href="/">
-          <div className="flex items-center space-x-2 cursor-pointer">
+    <nav className="w-full bg-white shadow-md fixed top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16 items-center">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-2">
             <Image
-              src="/images/logo.png" // ← Assure-toi que le fichier existe dans public/
+              src="/images/logo.png"
               alt="Logo Amboseli Secondary School"
               width={40}
               height={40}
               className="rounded-full"
             />
-            <span className="text-lg font-bold text-green-700 hidden sm:block">
+            <span className="text-xl font-semibold text-green-700 hidden sm:inline">
               Amboseli Secondary School
             </span>
+          </Link>
+
+          {/* Desktop Links */}
+          <div className="hidden md:flex space-x-6 items-center">
+            <NavLink href="/" label="Home" />
+            <NavLink href="#about" label="About" />
+            <NavLink href="#activities" label="Activities" />
+            <NavLink href="#contact" label="Contact" />
+            <NavLink href="/mission" label="Our Mission" />
+            <NavLink href="/donation" label="Donation" />
           </div>
-        </Link>
 
-        {/* Liens de navigation */}
-             <Link href="/" className="hover:text-green-600">
-  Home
-</Link>
-     <Link href="#about" className="hover:text-green-600">
-  About
-</Link>
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-green-700 focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              ☰
+            </button>
+          </div>
+        </div>
 
-<Link href="#activities" className="hover:text-green-600">
-  Activities
-</Link>
-<Link href="#contact" className="hover:text-green-600">
-  Contact
-</Link>
-<Link href="/mission" className="hover:text-green-600">
-  Our Mission
-</Link>
-<Link href="/donation" className="hover:text-green-600">
-  Donation
-</Link>
-
-        {/* Menu mobile (pour plus tard si tu veux) */}
-        <button className="md:hidden text-green-700 focus:outline-none">
-          ☰
-        </button>
+        {/* Mobile Menu */}
+        {isOpen && (
+          <div className="md:hidden mt-2 space-y-2">
+            <NavLink href="/" label="Home" />
+            <NavLink href="#about" label="About" />
+            <NavLink href="#activities" label="Activities" />
+            <NavLink href="#contact" label="Contact" />
+            <NavLink href="/mission" label="Our Mission" />
+            <NavLink href="/donation" label="Donation" />
+          </div>
+        )}
       </div>
     </nav>
   );
 };
+
+const NavLink = ({
+  href,
+  label,
+  isButton = false,
+}: {
+  href: string;
+  label: string;
+  isButton?: boolean;
+}) => (
+  <Link
+    href={href}
+    className={`font-medium transition-all duration-200 ${
+      isButton
+        ? 'bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 shadow-md'
+        : 'text-gray-700 hover:text-green-600'
+    }`}
+  >
+    {label}
+  </Link>
+);
+
 
 export default Navbar;

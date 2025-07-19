@@ -1,35 +1,48 @@
-"use client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+'use client';
+
+import { motion } from 'framer-motion';
 
 export default function MissionPage() {
   return (
-    <>
-      <Navbar />
-      <main className="px-6 py-12 max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-6 text-center text-green-700">
-          Notre Mission
+    <main className="px-6 py-16 max-w-3xl mx-auto text-gray-800">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <h1 className="text-5xl font-extrabold mb-8  top-10 text-center text-green-700 tracking-tight">
+          Our Mission
         </h1>
-        <p className="text-lg leading-relaxed text-gray-800">
-          À Amboseli Lewis Secondary School, notre mission est de fournir une
-          éducation de qualité, accessible à tous les jeunes, en particulier
-          dans les zones rurales du Kenya.
-          <br />
-          <br />
-          Nous croyons fermement que chaque enfant mérite l’opportunité de
-          réussir, et nous nous engageons à créer un environnement
-          d’apprentissage sûr, inclusif et stimulant.
-          <br />
-          <br />
-          Nos enseignants dévoués, nos activités parascolaires enrichissantes et
-          notre engagement communautaire font partie intégrante de notre vision
-          pour l’avenir.
-          <br />
-          <br />
-          Rejoignez-nous dans cette aventure éducative et contribuez à
-          construire un avenir meilleur !
-        </p>
-      </main>
-    </>
+
+        <div className="space-y-6 text-lg leading-relaxed">
+          <p>
+            
+            At <strong>Amboseli Lewis Secondary School</strong>,
+             our mission is to provide quality education accessible to all young people,
+              particularly in rural Kenya.
+          </p>
+
+          <p>
+            We firmly believe that every child deserves the opportunity to succeed,
+             and we are committed to creating a safe, inclusive, and stimulating learning environment.
+          </p>
+
+          <p>
+            Nos enseignants dévoués, nos activités parascolaires enrichissantes
+            et notre engagement communautaire font partie intégrante de notre
+            vision pour l’avenir.
+            Our dedicated teachers, enriching extracurricular activities, and community engagement are integral parts of our vision for the future.
+
+          </p>
+
+          <p>
+            
+            
+
+<span className="font-semibold text-green-800">Join us</span> on this educational adventure and help build a better future!
+          </p>
+        </div>
+      </motion.div>
+    </main>
   );
 }

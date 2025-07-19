@@ -1,18 +1,27 @@
+'use client'; // Important pour pouvoir utiliser usePathname
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import Link from "next/link"; // Make sure to import Link
+import { usePathname } from 'next/navigation';
+import Link from "next/link";
+
+const hiddenFooterRoutes = ['/mission', '/donation'];
 
 export default function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const showFooter = !hiddenFooterRoutes.includes(pathname);
+
   return (
     <>
       <Navbar />
 
       <main>{children}</main>
-      <Footer />
+
+      {showFooter && <Footer />}
 
       <Link
         href="/donation"
