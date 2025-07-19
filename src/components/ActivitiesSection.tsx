@@ -5,9 +5,9 @@ import Image from 'next/image';
 export default function ActivitiesSection() {
   const activities = [
     {
-      title: 'Atelier de Robotique',
-      description: 'Les élèves apprennent à programmer et construire des robots en équipe.',
-      image: '/images/masai.jpeg',
+      title: 'Books for students',
+      description: ' Amboseli Lewis Secondary School in Kenya - students of Form 4 (our 12th grade) just received new textbooks and study guides to help them succeed at the compulsory Kenya Certificate of Secondary Education Exam.',
+      image: '/images/books.jpg',
     },
     {
       title: 'Sports ',
@@ -20,9 +20,9 @@ export default function ActivitiesSection() {
       image: '/images/lewisg.jpg',
     },
     {
-      title: 'Activités Sportives',
-      description: 'Favoriser l’esprit d’équipe et le bien-être physique.',
-      image: '/images/kilm.jpg',
+      title: 'Together for better',
+      description: 'Lewis Amboseli Secondary School, we donated 75 books to the library and provided 94 girls with reusable sanitary pad kits and essential menstrual education. Namelok Secondary School received around 100',
+      image: '/images/ambof.jpg',
     },
   ];
 

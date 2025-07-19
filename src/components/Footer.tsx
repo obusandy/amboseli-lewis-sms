@@ -16,7 +16,7 @@ export default function Footer() {
         
         {/* Adresse */}
         <div>
-          <h3 className="text-lg text-black font-semibold mb-3">📍 Adresse</h3>
+          <h3 className="text-lg text-black font-semibold mb-3">📍 Adress</h3>
           <p className="text-black leading-relaxed text-sm">
             Amboseli lewis Secondary School<br />
             Kenya, Kajiado
@@ -27,7 +27,7 @@ export default function Footer() {
         <div>
           <h3 className="text-lg text-black  font-semibold mb-3">📞 Contact</h3>
           <p className="text-black text-sm">Tél : +254 700 000 000</p>
-          <p className="text-black text-sm">Email : ecole@example.com</p>
+          <p className="text-black text-sm">Email : school@example.com</p>
         </div>
 
         {/* Navigation rapide */}
@@ -37,7 +37,7 @@ export default function Footer() {
         <div>
           <h3 className="text-lg text-black font-semibold mb-3">🔒 Admin</h3>
           <p className="text-black text-sm mb-2">
-            Réservé au personnel administratif
+            Reserved for administrative staff
           </p>
           <Link
             href={adminLink}
@@ -45,7 +45,7 @@ export default function Footer() {
           >
             {status === "authenticated" && isAdmin
               ? "Dashboard Admin"
-              : "Espace Admin"}
+              : "Admin area"}
           </Link>
         </div>
 

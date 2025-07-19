@@ -28,11 +28,7 @@ export default function MissionPage() {
           </p>
 
           <p>
-            Nos enseignants dévoués, nos activités parascolaires enrichissantes
-            et notre engagement communautaire font partie intégrante de notre
-            vision pour l’avenir.
-            Our dedicated teachers, enriching extracurricular activities, and community engagement are integral parts of our vision for the future.
-
+          Our dedicated teachers, enriching extracurricular activities, and community engagement are integral parts of our vision for the future.
           </p>
 
           <p>
