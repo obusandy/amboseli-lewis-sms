@@ -98,19 +98,22 @@ model Student {
 model Payment {
   id         String   @id @default(cuid()) @map("_id")
   amount     Float
-  method     String   // "CASH", "BANK", "MOBILE"
-  reference  String?  // M-Pesa code, Bank Slip #, etc.
+  method     String
+  reference  String?
   notes      String?
-  recordedBy String   // Admin's name or ID
+  recordedBy String
   createdAt  DateTime @default(now())
 
   studentId String
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  termId String
-  term   Term @relation(fields: [termId], references: [id])
+  // ✅ THE FIX: Added '?' to make the field and relation optional.
+  termId String?
+  term   Term? @relation(fields: [termId], references: [id])
 
   @@index([studentId])
+  // We can't index an optional field in the same way, but Prisma handles this gracefully.
+  // The relation itself provides efficient lookups.
   @@index([termId])
 }
 

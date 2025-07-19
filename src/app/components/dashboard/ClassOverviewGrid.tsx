@@ -3,6 +3,7 @@
 import { Card, Col, Row, Statistic, Progress, Button, Typography } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import WelcomeCard from "./WelcomeCard";
 
 const { Text } = Typography;
 
@@ -22,7 +23,10 @@ export default function ClassOverviewGrid({
   classData: ClassData[];
 }) {
   return (
-    <Row gutter={[16, 16]}>
+    <Row gutter={[24, 24]}>
+      <Col xs={24} sm={12} lg={8}>
+        <WelcomeCard />
+      </Col>
       {classData.map((cls) => {
         const percentCollected =
           cls.target > 0 ? (cls.totalPaid / cls.target) * 100 : 0;

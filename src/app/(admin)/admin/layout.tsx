@@ -14,7 +14,11 @@ export default function AdminLayout({
       <Navbar />
       {/* This provides the grey background and padding for the admin content */}
       <Layout
-        style={{ minHeight: "calc(100vh - 64px)", background: "#f0f2f5" }}
+        style={{
+          minHeight: "calc(100vh - 64px)",
+          paddingTop: "50px",
+          background: "#f0f2f5",
+        }}
       >
         <Content style={{ padding: "24px" }}>
           <div style={{ background: "#fff", padding: 24, minHeight: "100%" }}>

@@ -59,7 +59,7 @@ export default function DashboardPage() {
       <ClassOverviewGrid classData={classData} />
 
       <Title level={3} style={{ marginTop: 40, marginBottom: 20 }}>
-        System Actions
+        System Management
       </Title>
       <AdminActions />
     </div>

@@ -1,42 +1,25 @@
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth/next";
 
-// --- TYPE DEFINITIONS for clarity and safety ---
+// --- TYPE DEFINITIONS ---
 type TransactionClient = Omit<
   PrismaClient,
   "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
 >;
 type PromotableClassName = "Form 1" | "Form 2" | "Form 3" | "Form 4";
+type StudentUpdatePromise = Prisma.Prisma__StudentClient<any, never>;
 
-// --- HELPER FUNCTION: This contains the complete, corrected end-of-year logic. ---
-
-/**
- * Handles the entire end-of-year process in the correct order:
- * 1. Calculates cumulative arrears based on the term that is ending.
- * 2. Promotes students to their next class.
- * 3. Creates a detailed log of the promotion to enable an "undo" action.
- *
- * @param tx - The Prisma transaction client.
- * @param adminName - The name of the administrator triggering the process.
- * @returns The ID of the promotion log, or null if no students were promoted.
- */
-async function endOfAcademicYearProcess(
-  tx: TransactionClient,
-  adminName: string
-): Promise<string | null> {
-  console.log("Starting End-of-Year process (Arrears + Promotion)...");
-
-  // --- STAGE 1: CALCULATE AND LOCK IN CUMULATIVE ARREARS ---
+// --- HELPER 1: CALCULATE ARREARS ---
+async function updateStudentArrears(tx: TransactionClient) {
+  console.log("Updating student arrears...");
   const previousTerm = await tx.term.findFirst({ where: { isCurrent: true } });
   if (!previousTerm) {
-    throw new Error(
-      "Cannot run end-of-year process: No current term found to calculate arrears from."
-    );
+    console.log("No previous term found. Skipping arrears calculation.");
+    return;
   }
-
   const activeStudents = await tx.student.findMany({
     where: { status: "ACTIVE" },
     select: {
@@ -49,26 +32,28 @@ async function endOfAcademicYearProcess(
       },
     },
   });
-
-  for (const student of activeStudents) {
+  // OPTIMIZATION: Run updates in parallel to prevent timeouts
+  const updatePromises = activeStudents.map((student) => {
     const totalBillForTerm = student.schoolClass.termFee + student.arrears;
     const totalPaidInTerm = student.payments.reduce(
       (sum: number, p: { amount: number }) => sum + p.amount,
       0
     );
     const newCumulativeArrears = totalBillForTerm - totalPaidInTerm;
-
-    await tx.student.update({
+    return tx.student.update({
       where: { id: student.id },
-      data: { arrears: newCumulativeArrears > 0 ? newCumulativeArrears : 0 },
+      data: { arrears: newCumulativeArrears },
     });
-  }
-  console.log(
-    `Cumulative arrears updated for ${activeStudents.length} students.`
-  );
+  });
+  await Promise.all(updatePromises);
+  console.log(`Arrears updated for ${activeStudents.length} students.`);
+}
 
-  // --- STAGE 2: PROMOTE STUDENTS ---
-  console.log("Promoting students...");
+// --- HELPER 2: PROMOTE STUDENTS ---
+async function promoteStudentsAndLog(
+  tx: TransactionClient,
+  adminName: string
+): Promise<string | null> {
   const studentsToPromote = await tx.student.findMany({
     where: {
       schoolClass: { name: { in: ["Form 1", "Form 2", "Form 3", "Form 4"] } },
@@ -81,11 +66,7 @@ async function endOfAcademicYearProcess(
       schoolClass: { select: { name: true } },
     },
   });
-
-  if (studentsToPromote.length === 0) {
-    console.log("No students to promote. End-of-Year process complete.");
-    return null;
-  }
+  if (studentsToPromote.length === 0) return null;
 
   const classes = await tx.schoolClass.findMany({
     where: { name: { in: ["Form 2", "Form 3", "Form 4", "Graduated"] } },
@@ -98,19 +79,13 @@ async function endOfAcademicYearProcess(
     "Form 3": classMap.get("Form 4"),
     "Form 4": classMap.get("Graduated"),
   };
+
   const promotionLog = await tx.promotionLog.create({
     data: { triggeredBy: adminName },
   });
 
-  const recordsForLog: {
-    studentId: string;
-    studentName: string;
-    previousSchoolClassId: string;
-    newSchoolClassId: string;
-    promotionLogId: string;
-  }[] = [];
-
-  for (const student of studentsToPromote) {
+  const promotionUpdatePromises: StudentUpdatePromise[] = [];
+  const recordsForLog = studentsToPromote.map((student) => {
     const currentClassName = student.schoolClass.name as PromotableClassName;
     const newClassId = promotionMap[currentClassName];
     if (!newClassId)
@@ -118,30 +93,29 @@ async function endOfAcademicYearProcess(
         `Could not find destination class for ${student.schoolClass.name}`
       );
 
-    // Update the student's record immediately
-    await tx.student.update({
-      where: { id: student.id },
-      data: {
-        schoolClassId: newClassId,
-        status:
-          newClassId === classMap.get("Graduated") ? "GRADUATED" : "ACTIVE",
-      },
-    });
+    promotionUpdatePromises.push(
+      tx.student.update({
+        where: { id: student.id },
+        data: {
+          schoolClassId: newClassId,
+          status:
+            newClassId === classMap.get("Graduated") ? "GRADUATED" : "ACTIVE",
+        },
+      })
+    );
 
-    // Add the details of this successful operation to our log array
-    recordsForLog.push({
+    return {
       studentId: student.id,
       studentName: student.name,
       previousSchoolClassId: student.schoolClassId,
       newSchoolClassId: newClassId,
       promotionLogId: promotionLog.id,
-    });
-  }
+    };
+  });
 
-  // Now, create all the log records in one batch operation
+  await Promise.all(promotionUpdatePromises);
   await tx.studentPromotionRecord.createMany({ data: recordsForLog });
 
-  console.log("Promotion completed successfully.");
   return promotionLog.id;
 }
 
@@ -155,48 +129,52 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { name, startDate, endDate } = body;
-    if (!name || !startDate || !endDate) {
+    if (!name || !startDate || !endDate)
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
-    }
 
     const existingTerm = await prisma.term.findUnique({ where: { name } });
-    if (existingTerm) {
+    if (existingTerm)
       return NextResponse.json(
         { error: `A term with the name "${name}" already exists.` },
         { status: 409 }
       );
-    }
 
     const isNewAcademicYear = name.toLowerCase().includes("term 1");
     let promotionLogId: string | null = null;
 
-    const newTerm = await prisma.$transaction(async (tx) => {
-      // If it's a new academic year, run the combined end-of-year process.
-      if (isNewAcademicYear) {
-        promotionLogId = await endOfAcademicYearProcess(tx, session.user.name!);
+    // Increase the timeout for this specific, long-running operation.
+    const newTerm = await prisma.$transaction(
+      async (tx) => {
+        await updateStudentArrears(tx);
+        if (isNewAcademicYear) {
+          promotionLogId = await promoteStudentsAndLog(tx, session.user.name!);
+        }
+        await tx.term.updateMany({
+          where: { isCurrent: true },
+          data: { isCurrent: false },
+        });
+        return tx.term.create({
+          data: {
+            name,
+            startDate: new Date(startDate),
+            endDate: new Date(endDate),
+            isCurrent: true,
+          },
+        });
+      },
+      {
+        maxWait: 10000, // Wait up to 10 seconds
+        timeout: 20000, // Allow transaction to run for 20 seconds
       }
+    );
 
-      await tx.term.updateMany({
-        where: { isCurrent: true },
-        data: { isCurrent: false },
-      });
-      return tx.term.create({
-        data: {
-          name,
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
-          isCurrent: true,
-        },
-      });
-    });
-
-    let message = `New term "${newTerm.name}" started successfully.`;
-    if (isNewAcademicYear) {
+    let message = `New term "${newTerm.name}" started successfully. Arrears have been carried forward.`;
+    if (promotionLogId) {
       message =
-        "End-of-year process complete: Arrears updated and students promoted!";
+        "Students promoted, arrears updated, and new academic year started successfully!";
     }
 
     return NextResponse.json({ message, term: newTerm, promotionLogId });

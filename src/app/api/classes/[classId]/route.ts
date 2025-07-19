@@ -1,11 +1,8 @@
-// src/app/api/classes/[classId]/route.ts
-
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 
-// ✅ FIX 1: The function signature is corrected to the standard pattern.
 export async function GET(
   request: Request,
   context: { params: { classId: string } }
@@ -30,20 +27,19 @@ export async function GET(
       return NextResponse.json({ error: "Class not found" }, { status: 404 });
     }
 
-    let studentWhereCondition = {};
-    if (schoolClass.name === "Graduated") {
-      studentWhereCondition = { status: "GRADUATED" };
-    } else {
-      studentWhereCondition = { status: "ACTIVE" };
-    }
+    const isGraduatedClass = schoolClass.name === "Graduated";
 
     const students = await prisma.student.findMany({
       where: {
         schoolClassId: classId,
-        ...studentWhereCondition,
+        status: isGraduatedClass ? "GRADUATED" : "ACTIVE",
       },
       include: {
-        payments: currentTerm ? { where: { termId: currentTerm.id } } : false,
+        // Only include payments for the current term if it's an active class
+        payments:
+          !isGraduatedClass && currentTerm
+            ? { where: { termId: currentTerm.id } }
+            : false,
       },
       orderBy: { name: "asc" },
     });
@@ -51,25 +47,24 @@ export async function GET(
     const studentsWithDetails = students.map((student) => {
       let outstandingBalance = 0;
 
-      if (schoolClass.name === "Graduated") {
+      if (isGraduatedClass) {
+        // ✅ For graduated students, their balance IS their current arrears.
+        // This value is now updated directly by the payment API.
         outstandingBalance = student.arrears;
       } else {
         const totalPaidInTerm = student.payments.reduce(
           (sum, p) => sum + p.amount,
           0
         );
-
-        // ✅ FIX 2: Corrected the variable name from `studentArrears` to `student.arrears`.
         outstandingBalance =
           schoolClass.termFee + student.arrears - totalPaidInTerm;
       }
 
       return {
-        // Spread the original student object to get all its properties
-        ...student,
-        // Overwrite/add the calculated and class-specific properties
+        id: student.id,
+        name: student.name,
+        admissionNumber: student.admissionNumber,
         class: schoolClass.name,
-        termFee: schoolClass.termFee,
         balance: outstandingBalance,
       };
     });
