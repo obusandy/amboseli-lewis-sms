@@ -1,10 +1,43 @@
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import {
+  getServerSession,
+  type NextAuthOptions,
+  type DefaultSession,
+} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
-import { NextAuthOptions } from "next-auth";
+import { compare } from "bcryptjs";
+
+declare module "next-auth" {
+  interface Session extends DefaultSession {
+    user: { id: string; role: string } & DefaultSession["user"];
+  }
+  interface User {
+    role: string;
+  }
+}
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role: string;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
+  callbacks: {
+    jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      return token;
+    },
+    session({ session, token }) {
+      session.user.id = token.id;
+      session.user.role = token.role;
+      return session;
+    },
+  },
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
@@ -14,21 +47,18 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-
+        if (!credentials?.email || !credentials.password)
+          throw new Error("Invalid credentials.");
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
-
-        if (!user || !user.password) return null;
-
-        const isValid = await bcrypt.compare(
+        if (!user || !user.password)
+          throw new Error("No user found with this email.");
+        const isPasswordValid = await compare(
           credentials.password,
           user.password
         );
-
-        if (!isValid) return null;
-
+        if (!isPasswordValid) throw new Error("Incorrect password.");
         return {
           id: user.id,
           name: user.name,
@@ -38,27 +68,9 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-  },
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/login",
-  },
+  session: { strategy: "jwt" },
+  pages: { signIn: "/login" },
   secret: process.env.NEXTAUTH_SECRET,
 };
+
+export const getServerAuthSession = () => getServerSession(authOptions);

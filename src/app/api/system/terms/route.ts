@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
+import { getServerAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma, PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth/next";
 
 // --- TYPE DEFINITIONS ---
 type TransactionClient = Omit<
@@ -122,7 +121,7 @@ async function promoteStudentsAndLog(
 // --- MAIN API ROUTE HANDLER ---
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerAuthSession();
     if (!session?.user?.name || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

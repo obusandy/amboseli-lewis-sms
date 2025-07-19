@@ -1,12 +1,11 @@
 // src/app/api/payments/route.ts
 
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
+import { getServerAuthSession } from "@/lib/auth";
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerAuthSession();
   if (!session?.user?.name) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

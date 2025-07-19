@@ -1,13 +1,12 @@
 // src/app/api/system/promote/route.ts
 
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
+import { getServerAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client"; // Import Prisma types for error handling
-import { getServerSession } from "next-auth/next";
+import { Prisma } from "@prisma/client";
 
 export async function POST() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerAuthSession();
   if (!session || session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

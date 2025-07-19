@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
+import { getServerAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
 
 // This function handles "deleting" a student by archiving them.
 export async function DELETE(
   request: Request,
   context: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerAuthSession();
   if (!session || session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
