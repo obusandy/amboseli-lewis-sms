@@ -1,5 +1,3 @@
-// src/app/admin/settings/page.tsx
-
 "use client";
 
 import { useState } from "react";
@@ -13,6 +11,7 @@ import {
   Row,
   Col,
   message,
+  Space,
 } from "antd";
 import { PoweroffOutlined } from "@ant-design/icons";
 import { Dayjs } from "dayjs";
@@ -29,9 +28,7 @@ type TermFormValues = {
 export default function SettingsPage() {
   const [termForm]: [FormInstance<TermFormValues>] = Form.useForm();
   const [termSubmitting, setTermSubmitting] = useState(false);
-  // ❌ The old `promoteLoading` state is removed as it's no longer needed.
 
-  // ✅ ADDED: The new handler for the "Undo" button.
   const handleUndoPromotion = async (promotionLogId: string) => {
     try {
       const response = await fetch("/api/system/promote/undo", {
@@ -49,7 +46,6 @@ export default function SettingsPage() {
     }
   };
 
-  // ✅ REPLACED: This is the new, smarter version of the handler.
   const handleStartNewTerm = async (values: TermFormValues) => {
     setTermSubmitting(true);
     try {
@@ -71,21 +67,28 @@ export default function SettingsPage() {
 
       termForm.resetFields();
 
-      // Display a message with an undo button if a promotion happened
       if (result.promotionLogId) {
-        const btn = (
-          <Button
-            type="primary"
-            size="small"
-            onClick={() => handleUndoPromotion(result.promotionLogId)}
-          >
-            Undo Promotion
-          </Button>
-        );
-        message.success({
-          content: result.message,
-          duration: 10, // Keep the message on screen for 10 seconds
-          btn,
+        message.success(result.message);
+
+        const undoKey = "undoAction";
+        message.info({
+          content: (
+            <Space>
+              <span>A promotion was triggered.</span>
+              <Button
+                type="primary"
+                size="small"
+                onClick={() => {
+                  handleUndoPromotion(result.promotionLogId);
+                  message.destroy(undoKey);
+                }}
+              >
+                Undo Promotion
+              </Button>
+            </Space>
+          ),
+          key: undoKey,
+          duration: 10,
         });
       } else {
         message.success(result.message);
@@ -96,9 +99,6 @@ export default function SettingsPage() {
       setTermSubmitting(false);
     }
   };
-
-  // ❌ The old `handlePromoteStudents` and `showPromoteConfirm` functions are completely removed.
-
   return (
     <div>
       <Title level={2}>System Settings</Title>
