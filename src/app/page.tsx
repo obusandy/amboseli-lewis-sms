@@ -20,7 +20,6 @@ export default function SplashScreen() {
         Amboseli Lewis School
       </h1>
 
-      {/* SVG éléphant animé */}
       <div className="w-48 h-48 animate-[fadeInSlow]">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +30,7 @@ export default function SplashScreen() {
         </svg>
       </div>
 
-      <p className="text-sm text-gray-600 mt-4">Chargement en cours...</p>
+      <p className="text-sm text-gray-600 mt-4">Loading</p>
     </main>
   );
 }
