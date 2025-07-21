@@ -47,24 +47,77 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password)
+        // --- START OF LOGGING ---
+        console.log("--- [AUTHORIZE FUNCTION START] ---");
+
+        if (!credentials?.email || !credentials.password) {
+          console.log("ERROR: Missing email or password in credentials.");
           throw new Error("Invalid credentials.");
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
-        if (!user || !user.password)
-          throw new Error("No user found with this email.");
-        const isPasswordValid = await compare(
-          credentials.password,
-          user.password
+        }
+
+        console.log(
+          `Step 1: Credentials received for email: ${credentials.email}`
         );
-        if (!isPasswordValid) throw new Error("Incorrect password.");
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        };
+
+        try {
+          console.log(
+            "Step 2: Attempting to connect to Prisma to find user..."
+          );
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
+
+          if (!user || !user.password) {
+            console.log(
+              "ERROR: User not found in database, or user has no password field."
+            );
+            throw new Error("No user found with this email.");
+          }
+
+          console.log(
+            "Step 3: User found in database. User's role:",
+            user.role
+          );
+          console.log("Step 4: Comparing passwords now.");
+          console.log(
+            " -> Plain text password from form:",
+            credentials.password
+          );
+          console.log(" -> Hashed password from DB:", user.password);
+
+          const isPasswordValid = await compare(
+            credentials.password,
+            user.password
+          );
+
+          console.log(
+            "Step 5: Password comparison result (isPasswordValid):",
+            isPasswordValid
+          );
+
+          if (!isPasswordValid) {
+            console.log(
+              "ERROR: Password comparison returned false. Incorrect password."
+            );
+            throw new Error("Incorrect password.");
+          }
+
+          console.log("SUCCESS: Password is valid. Returning user object.");
+          console.log("--- [AUTHORIZE FUNCTION END] ---");
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          };
+        } catch (error) {
+          console.error(
+            "CRITICAL ERROR inside authorize try/catch block:",
+            error
+          );
+          // Re-throw the error so NextAuth can handle it
+          throw new Error("A server error occurred during authentication.");
+        }
       },
     }),
   ],
