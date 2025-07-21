@@ -53,7 +53,7 @@ export default function ContactSection() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
           <div>
             <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
-              A World of <span className="text-green-400">Principles</span>
+              A World of <span className="text-green-400">Principle</span>
             </h2>
             <p className="text-gray-300 max-w-xl text-base md:text-lg leading-relaxed">
               We are driven by a commitment to excellence in leadership and education. Feel free to contact us directly.
@@ -69,7 +69,7 @@ export default function ContactSection() {
                 rel="noreferrer"
                 className="hover:underline text-gray-100"
               >
-                facebook.com/votrepage
+                facebook.com/school page
               </a>
             </div>
             <div className="flex items-center gap-3">

@@ -6,29 +6,28 @@ import { useState } from 'react';
 export default function AboutSection() {
   const [showMore, setShowMore] = useState(false);
 
-  const toggleText = () => {
-    setShowMore((prev) => !prev);
-  };
+  const toggleText = () => setShowMore((prev) => !prev);
 
   return (
-    <section className="bg-white py-12 px-0 md:px-12 lg:px-20">
+    <section className="bg-white py-12 px-4 md:px-12 lg:px-20">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
+        
         {/* 📸 Image */}
-      <div className="md:w-1/2 w-full">
-  <Image
-    src="/images/boys.jpg"
-    alt="About Amboseli Secondary School"
-    width={400}
-    height={250} // une hauteur plus adaptée
-    className="rounded-xl shadow-lg object-cover w-full max-h-[600px]"
-  />
-</div>
-
+        <div className="md:w-1/2 w-full px-4 md:px-8 my-6">
+          <Image
+            src="/images/boys.jpg"
+            alt="About Amboseli Secondary School"
+            width={400}
+            height={250}
+            className="rounded-xl shadow-lg object-cover max-w-full h-auto mx-auto"
+          />
+        </div>
 
         {/* 📖 Texte */}
         <div className="md:w-1/2 w-full text-gray-700">
           <h2 className="text-4xl font-extrabold text-green-700 mb-6">About Us</h2>
-          <div className="bg-green-50 text-gray-800 text-[15px] leading-snug p-5 rounded-lg shadow-sm font-[Inter,sans-serif] space-y-4">
+
+          <div className="bg-green-50 text-gray-800 text-[15px] leading-snug p-5 rounded-lg shadow-sm font-[Inter,sans-serif] space-y-4 transition-all duration-500 ease-in-out">
             <p>
               The nearest secondary school to Amboseli is 12 miles away – a distance too far for many students.
               To provide better access to continued education, Grand Circle Foundation built a secondary school
@@ -68,12 +67,15 @@ export default function AboutSection() {
               </>
             )}
 
-            <button
-              onClick={toggleText}
-              className="text-sm text-green-800 underline hover:text-green-600 focus:outline-none"
-            >
-              {showMore ? 'Read less' : 'Read more'}
-            </button>
+            <div className="pt-2">
+              <button
+                onClick={toggleText}
+                aria-expanded={showMore}
+                className="text-sm text-green-800 underline hover:text-green-600 transition-colors duration-200 focus:outline-none"
+              >
+                {showMore ? 'Read less' : 'Read more'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

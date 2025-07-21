@@ -36,6 +36,7 @@ export default function ActivitiesSection() {
         <h2 className="text-4xl font-extrabold text-white text-center mb-12">
           Our Activities
         </h2>
+        <div className="px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {activities.map((activity, index) => (
             <div
@@ -59,7 +60,9 @@ export default function ActivitiesSection() {
                 </p>
               </div>
             </div>
+          
           ))}
+        </div>
         </div>
       </div>
     </section>
